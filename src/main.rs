@@ -1,8 +1,10 @@
 use std::fs::File;
 use std::io::{self, Read, Seek, SeekFrom};
+use std::path::PathBuf;
 use std::str;
+use dirs::home_dir;
 
-fn read_player_name(dump_path: &str) -> io::Result<String> {
+fn read_player_name(dump_path: &PathBuf) -> io::Result<String> {
     let mut file = File::open(dump_path)?;
 
     // Offset for the player's name within WRAM
@@ -26,10 +28,11 @@ fn read_player_name(dump_path: &str) -> io::Result<String> {
 }
 
 fn main() -> io::Result<()> {
-    let dump_path = "wram_dump.bin"; // Path to your WRAM dump file
+    let mut dump_path = home_dir().unwrap_or_else(|| PathBuf::from("/"));
+    dump_path.push("memdump.bin");
 
     // Read the player's name from the dump
-    let player_name = read_player_name(dump_path)?;
+    let player_name = read_player_name(&dump_path)?;
 
     // Display the name (or later, send to Google Sheets)
     println!("Player's Name: {}", player_name);
