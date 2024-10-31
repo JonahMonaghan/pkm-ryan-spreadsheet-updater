@@ -244,6 +244,24 @@ fn read_player_name(dump_path: &PathBuf) -> io::Result<String> {
     Ok(player_name)
 }
 
+fn read_party_pokemon(dump_path: &PathBuf) -> io::Result<String>{
+    let mut file = File::open(dump_path)?;
+
+    let pokemon_offset = 0x44360;
+    let name_offset = 0x08;
+    let name_length = 10;
+
+    file.seek(SeekFrom::Start(pokemon_offset + name_offset))?;
+
+    let mut buffer = vec![0; name_length];
+    file.read_exact(&mut buffer)?;
+
+    let char_map = create_pokemon_char_map();
+    let pokemon_name = decode_pokemon_string(&buffer, &char_map);
+
+    Ok(pokemon_name)
+}
+
 fn main() -> io::Result<()> {
     let mut dump_path = home_dir().unwrap_or_else(|| PathBuf::from("/"));
     dump_path.push("memdump.bin");
@@ -252,6 +270,11 @@ fn main() -> io::Result<()> {
     match read_player_name(&dump_path) {
         Ok(player_name) => println!("Player's Name: {}", player_name),
         Err(e) => eprintln!("Error reading player name: {}", e),
+    }
+
+    match read_party_pokemon(&dump_path){
+        Ok(pokemon_name) => println!("Pokemon #1's Name: {}", pokemon_name),
+        Err(e) => eprintln!("Error reading pokemon name: {}", e),
     }
 
     Ok(())
